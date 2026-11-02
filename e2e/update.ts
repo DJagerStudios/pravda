@@ -82,7 +82,7 @@ async function check(name: string, fn: () => Promise<void>) {
   }
 }
 
-async function launch(appImage: string, feed: string, profile: string, debugPort: number) {
+function launch(appImage: string, feed: string, profile: string, debugPort: number) {
   const child = new Deno.Command(appImage, {
     args: ["--ozone-platform=wayland", "--disable-gpu", `--remote-debugging-port=${debugPort}`, "--password-store=basic"],
     env: { PRAVDA_USER_DATA: profile, PRAVDA_UPDATE_FEED: feed },
@@ -119,7 +119,7 @@ try {
   const oldHash = await sha256(installed);
 
   await check("an older copy finds the signed release, shows progress, replaces itself and restarts", async () => {
-    const child = await launch(installed, `${base}/releases`, `${work}/profile`, 9334);
+    const child = launch(installed, `${base}/releases`, `${work}/profile`, 9334);
     note('launched the old version');
     const { browser, page } = await attach(9334);
     const seen = new Set<string>();
@@ -165,7 +165,7 @@ try {
     await Deno.mkdir(`${work}/apps2`, { recursive: true });
     await Deno.copyFile(oldAppImage, copy);
     await Deno.chmod(copy, 0o755);
-    const child = await launch(copy, `${base}/bad/releases`, `${work}/profile2`, 9335);
+    const child = launch(copy, `${base}/bad/releases`, `${work}/profile2`, 9335);
     const { browser, page } = await attach(9335);
     const state = (await until("the refusal", async () => {
       const s = await desktopState(page);

@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests and lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Format
+        run: test -z "$(gofmt -l cmd internal)" || { gofmt -l cmd internal; exit 1; }
+
+      - name: Server tests
+        run: go test -race ./internal/...
+
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      - name: Lint the client, the desktop app and the tests
+        run: deno lint --no-config --rules-exclude=no-explicit-any,no-window web/public/js desktop e2e
+
+      - name: Type-check the end-to-end tests
+        run: deno check --no-lock e2e/run.ts e2e/desktop.ts e2e/update.ts
+
+      - name: Build the server for every platform
+        run: python3 -I packaging/build.py --server-only --out /tmp/pravda-dist

@@ -1,0 +1,14 @@
+{
+  "name": "Pravda",
+  "short_name": "Pravda",
+  "description": "End-to-end encrypted chat, voice and video.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#efe6d2",
+  "theme_color": "#c8102e",
+  "icons": [
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "pravda",
+  "productName": "Pravda",
+  "version": "0.3.0",
+  "description": "End-to-end encrypted chat, voice and video.",
+  "license": "AGPL-3.0-or-later",
+  "main": "main.js",
+  "private": true,
+  "pravda": {
+    "repository": "DJagerStudios/pravda"
+  }
+}

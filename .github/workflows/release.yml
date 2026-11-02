@@ -1,0 +1,70 @@
+name: Release
+
+# Pushing a tag such as v0.3.0 builds every download, signs the update
+# manifest and publishes a GitHub release with the notes from
+# docs/releases/<version>.md. A tag with a hyphen (v0.4.0-beta.1) becomes a
+# pre-release, which only copies with "Include beta versions" update to.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: ubuntu-24.04
+    environment: release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Packaging tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends python3-pil zip unzip
+
+      - name: Server tests
+        run: go test ./internal/...
+
+      - name: Release notes
+        run: test -f "docs/releases/${GITHUB_REF_NAME#v}.md"
+
+      - name: Build every download
+        env:
+          PRAVDA_SIGNING_KEY: ${{ secrets.PRAVDA_SIGNING_KEY }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          python3 -I packaging/build.py --version "$version"
+          # Installed copies only update to signed releases.
+          test -s "dist/Pravda-$version-update.json.sig"
+
+      - name: Check the Debian packages
+        run: |
+          for deb in dist/*.deb; do
+            dpkg-deb --info "$deb" > /dev/null
+            dpkg-deb --contents "$deb" | grep -q ' ./opt/Pravda/pravda$'
+          done
+
+      - name: Check the checksums
+        working-directory: dist
+        run: sha256sum -c "Pravda-${GITHUB_REF_NAME#v}-SHA256SUMS"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          prerelease=""
+          case "$version" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" --verify-tag $prerelease \
+            --title "Pravda $version" \
+            --notes-file "docs/releases/$version.md" \
+            dist/Pravda-"$version"-* dist/Pravda-server-"$version"-*

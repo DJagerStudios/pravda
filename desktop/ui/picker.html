@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Share your screen</title>
+  <link rel="stylesheet" href="picker.css">
+  <script src="picker.js" defer></script>
+</head>
+<body>
+  <main class="picker">
+    <header class="picker-head">
+      <h1>Share your screen</h1>
+      <p>Choose a whole screen or one window. Everyone in the call sees it, encrypted end to end.</p>
+    </header>
+    <div class="tabs" role="tablist" aria-label="Kind of source">
+      <button type="button" role="tab" data-kind="screen" aria-selected="true">Screens</button>
+      <button type="button" role="tab" data-kind="window" aria-selected="false">Windows</button>
+    </div>
+    <ul class="sources" role="listbox" aria-label="Sources"></ul>
+    <p class="empty" hidden>Nothing to share here.</p>
+    <footer class="picker-foot">
+      <button type="button" class="button" id="cancel">Cancel</button>
+      <button type="button" class="button button-primary" id="share" disabled>Share</button>
+    </footer>
+  </main>
+</body>
+</html>
